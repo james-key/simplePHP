@@ -7,31 +7,33 @@ use App\App;
 
 class Database
 {
-    private static $connection;
+    private static $instance;
+    private $connection;
     private $stmt;
 
-    public function __construct()
+    private function __construct()
     {
-        $this->connect();
+        $env = (App::getInstance())->getEnv();
+
+        $host = $env->get('DB_HOST');
+        $database = $env->get('DB_DATABASE');
+        $username = $env->get('DB_USERNAME');
+        $password = $env->get('DB_PASSWORD');
+
+        $this->connection = new PDO("mysql:host=$host;dbname=$database", $username, $password);
     }
 
-    private function connect()
+    public static function getInstance()
     {
-        if (!self::$connection) {
-            $env = (App::getInstance())->getEnv();
-
-            $host = $env->get('DB_HOST');
-            $database = $env->get('DB_DATABASE');
-            $username = $env->get('DB_USERNAME');
-            $password = $env->get('DB_PASSWORD');
-
-            self::$connection = new PDO("mysql:host=$host;dbname=$database", $username, $password);
+        if (self::$instance === null) {
+            self::$instance = new self();
         }
+        return self::$instance;
     }
 
     public function query($sql, $params = [])
     {
-        $stmt = self::$connection->prepare($sql);
+        $stmt = $this->connection->prepare($sql);
 
         foreach ($params as $key => &$value) {
             if (is_int($key)) {

@@ -15,14 +15,14 @@ class App
     private $view;
 
 
-    public function __construct($env_path, $view_path)
+    public function __construct()
     {
         spl_autoload_register([$this, 'register']);
 
-        $this->env = new DotEnv($env_path);
+        $this->env = new DotEnv(ROOT_PATH . '/.env');
         $this->router = new Router();
         $this->middleware = new Middleware();
-        $this->view = new View($view_path);
+        $this->view = new View(APP_PATH . '/views');
 
         self::$instance = $this;
     }
@@ -36,7 +36,7 @@ class App
         $prefix = 'App\\';
         $class_name = str_replace($prefix, '', $class_name);
         $file_path = str_replace('\\', DIRECTORY_SEPARATOR, $class_name);
-        $file = __DIR__ . '/' . $file_path . '.php';
+        $file = APP_PATH . '/classes/' . $file_path . '.php';
 
         if (file_exists($file)) {
             include $file;
@@ -54,7 +54,7 @@ class App
             $this->router->route($request, $response);
         } catch (Exception $e) {
             $response->setStatusCode(500);
-            $response->send("Error: " . $e->getMessage());
+            $response->send('Error: ' . $e->getMessage());
         }
     }
 

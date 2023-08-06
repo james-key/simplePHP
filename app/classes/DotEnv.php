@@ -4,6 +4,8 @@ namespace App;
 
 class DotEnv
 {
+    private $config = [];
+
     public function __construct($path)
     {
         if (!is_file($path)) {
@@ -14,13 +16,13 @@ class DotEnv
         foreach ($lines as $line) {
             if (strpos($line, '=') !== false) {
                 [$name, $value] = explode('=', $line, 2);
-                putenv("$name=$value");
+                $this->config[$name] = $value;
             }
         }
     }
 
     public function get($name)
     {
-        return getenv($name);
+        return $this->config[$name] ?? null;
     }
 }
