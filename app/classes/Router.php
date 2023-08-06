@@ -11,21 +11,29 @@ class Router
         $this->routes[$uri] = $callback;
     }
 
-    public function route($uri, $request, $response)
+    public function route($request, $response)
     {
-        if (isset($this->routes[$uri])) {
-            $callback = $this->routes[$uri];
-            if (is_array($callback)) {
-                $controller = $callback[0];
-                $method = $callback[1];
-                $result = call_user_func([$controller, $method]);
-                $response->send($result);
-            } else if (is_callable($callback)) {
-                $result = call_user_func($callback);
-                $response->send($result);
-            }
-        } else {
+        $uri = $request->getUri();
+
+        if (!isset($this->routes[$uri])) {
             throw new Exception("No route found for URI: $uri");
+        }
+
+        $callback = $this->routes[$uri];
+        $result = $this->executeCallback($callback);
+
+        $response->send($result);
+    }
+
+    private function executeCallback($callback)
+    {
+        if (is_array($callback)) {
+            [$controller, $method] = $callback;
+            return call_user_func([$controller, $method]);
+        } elseif (is_callable($callback)) {
+            return call_user_func($callback);
+        } else {
+            throw new Exception('Invalid route callback. Must be a controller method or a callable function');
         }
     }
 }

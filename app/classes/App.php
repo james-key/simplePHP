@@ -49,9 +49,9 @@ class App
             $request = new Request();
             $response = new Response();
             $uri = $request->getUri();
-            
+
             $this->middleware->run($uri);
-            $this->router->route($uri, $request, $response);
+            $this->router->route($request, $response);
         } catch (Exception $e) {
             $response->setStatusCode(500);
             $response->send("Error: " . $e->getMessage());
@@ -67,7 +67,7 @@ class App
         } else if (!is_callable($callback)) {
             throw new Exception('Invalid route callback. Must be a controller method or a callable function');
         }
-
+        
         $this->router->add($uri, $callback);
     }
 
