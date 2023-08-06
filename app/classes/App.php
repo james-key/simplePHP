@@ -31,7 +31,7 @@ class App
         return self::$instance;
     }
 
-    public function register($class_name)
+    private function register($class_name)
     {
         $prefix = 'App\\';
         $class_name = str_replace($prefix, '', $class_name);
@@ -43,18 +43,15 @@ class App
         }
     }
 
-    public function run()
+    private function execute($callback)
     {
-        try {
-            $request = new Request();
-            $response = new Response();
-            $uri = $request->getUri();
-
-            $this->middleware->run($uri);
-            $this->router->route($request, $response);
-        } catch (Exception $e) {
-            $response->setStatusCode(500);
-            $response->send('Error: ' . $e->getMessage());
+        if (is_array($callback)) {
+            [$controller, $method] = $callback;
+            return call_user_func([$controller, $method]);
+        } elseif (is_callable($callback)) {
+            return call_user_func($callback);
+        } else {
+            throw new Exception('Invalid route callback. Must be a controller method or a callable function');
         }
     }
 
@@ -69,6 +66,23 @@ class App
         }
         
         $this->router->add($uri, $callback);
+    }
+
+    public function run()
+    {
+        try {
+            $request = new Request();
+            $response = new Response();
+            $uri = $request->getUri();
+
+            // $this->middleware->run($uri);
+            $callback = $this->router->match($uri);
+            $result = $this->execute($callback);
+            $response->send($result);
+        } catch (Exception $e) {
+            $response->setStatusCode(500);
+            $response->send('Error: ' . $e->getMessage());
+        }
     }
 
     public function getController($name)

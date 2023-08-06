@@ -10,6 +10,12 @@ require_once ROOT_PATH . '/app/helpers.php';
 
 $app = new App(ROOT_PATH . '/.env', APP_PATH . '/views');
 
-require_once APP_PATH . '/routes.php';
+$app->route('/', function () {
+    return 'Hello World';
+});
+
+$app->route('/user', 'UserController@index');
+
+$app->route('/login', 'LoginController@index');
 
 $app->run();
